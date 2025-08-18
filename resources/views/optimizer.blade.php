@@ -29,7 +29,7 @@
 
 
 <script>
-    window.initialQueries = @json(app(PackageAIQueryOptimizer\Collectors\QueryCollector::class)->getQueries());
+    window.initialQueries = @json(app(AIQueryOptimizer\Collectors\QueryCollector::class)->getQueries());
     window.maxQueriesToSend = {{ config('ai-query-optimizer.query_processing.max_queries_to_send') }};
 </script>
 <script src="{{ asset('vendor/ai-query-optimizer/js/optimizer.js') }}"></script>

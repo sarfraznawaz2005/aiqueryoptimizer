@@ -45,16 +45,16 @@ return [
     |
     */
     'ai' => [
-        'provider' => 'gemini', // 'gemini', 'openai', etc.
+        'provider' => env('AI_PROVIDER', 'gemini'), // 'gemini', 'openai', etc.
 
         'providers' => [
             'gemini' => [
                 'key' => env('GEMINI_API_KEY'),
-                'model' => 'gemini-2.5-flash',
+                'model' => env('GEMINI_MODEL'),
             ],
             'openai' => [
                 'key' => env('OPENAI_API_KEY'),
-                'model' => 'gpt-4-turbo',
+                'model' => env('OPENAI_MODEL'),
                 'organization' => env('OPENAI_ORGANIZATION'),
             ],
         ],
