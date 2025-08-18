@@ -6,6 +6,8 @@
 
 A powerful Laravel development tool that leverages the intelligence of AI to analyze and optimize your application's SQL queries. This package provides real-time, actionable feedback directly in your browser, helping you identify performance bottlenecks and improve your database efficiency.
 
+**NOTE** Currently only works with `MySQL.`
+
 ## Features
 
 - **On-Demand Query Analysis**: Get instant feedback on your `SELECT` queries with the click of a button.
@@ -27,26 +29,25 @@ A powerful Laravel development tool that leverages the intelligence of AI to ana
 
 Since this package is not on Packagist, you need to add the repository to your project's `composer.json` file.
 
-1.  **Add the repository to `composer.json`**:
+1. **Add the repository to `composer.json`**:
+   
+   ```json
+   "repositories": [
+       {
+           "type": "vcs",
+           "url": "https://github.com/sarfraznawaz2005/aiqueryoptimizer.git"
+       }
+   ]
+   ```
+   
+   Add this within the main object of your `composer.json` file.
 
-    ```json
-    "repositories": [
-        {
-            "type": "vcs",
-            "url": "https://github.com/sarfraznawaz2005/aiqueryoptimizer.git"
-        }
-    ]
-    ```
-
-    Add this within the main object of your `composer.json` file.
-
-2.  **Require the package**:
-
-    Now, you can install the package using Composer:
-
-    ```bash
-    composer require sarfraznawaz2005/aiqueryoptimizer:dev-main --dev
-    ```
+2. **Require the package**:
+   Now, you can install the package using Composer:
+   
+   ```bash
+   composer require sarfraznawaz2005/aiqueryoptimizer:dev-main --dev
+   ```
 
 Next, publish the configuration and assets using the `vendor:publish` command. This will create the `config/ai-query-optimizer.php` file and publish the necessary CSS/JS assets to your `public` directory.
 
@@ -122,10 +123,10 @@ Caching is enabled by default to reduce API costs. The analysis for each unique 
 
 Once installed and configured, the package works automatically in your specified environments.
 
-1.  **Navigate Your Application**: As you use your application, the optimizer will collect all `SELECT` queries in the background.
-2.  **Floating Button**: You will see a floating "AI Query Check" button at the bottom-right of your screen, showing the number of unique queries captured.
-3.  **Analyze Queries**: Click the button to open the analysis modal. The package will send the collected queries to the configured AI for analysis.
-4.  **Review Suggestions**: The modal will display each query along with the AI's analysis and optimization suggestions. Queries that are already optimized are highlighted in green.
+1. **Navigate Your Application**: As you use your application, the optimizer will collect all `SELECT` queries in the background.
+2. **Floating Button**: You will see a floating "AI Query Check" button at the bottom-right of your screen, showing the number of unique queries captured.
+3. **Analyze Queries**: Click the button to open the analysis modal. The package will send the collected queries to the configured AI for analysis.
+4. **Review Suggestions**: The modal will display each query along with the AI's analysis and optimization suggestions. Queries that are already optimized are highlighted in green.
 
 ## How It Works
 
