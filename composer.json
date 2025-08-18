@@ -23,11 +23,6 @@
             "AIQueryOptimizer\\": "src/"
         }
     },
-    "autoload-dev": {
-        "psr-4": {
-            "AIQueryOptimizer\\Tests\\": "tests/"
-        }
-    },
     "extra": {
         "laravel": {
             "providers": [
