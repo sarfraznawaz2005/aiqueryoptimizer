@@ -130,7 +130,7 @@ This is a development tool and should **not** be used in a production environmen
 
 ## License
 
-Please see the [license file](license) for more information.
+Please see the [license file](LICENSE) for more information.
 
 [ico-version]: https://img.shields.io/packagist/v/sarfraznawaz2005/aiqueryoptimizer.svg?style=flat-square
 [ico-downloads]: https://img.shields.io/packagist/dt/sarfraznawaz2005/aiqueryoptimizer.svg?style=flat-square
