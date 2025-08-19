@@ -1,3 +1,6 @@
+[![Latest Version on Packagist][ico-version]][link-packagist]
+[![Total Downloads][ico-downloads]][link-downloads]
+
 ![Screenshot](screenshot.png)
 
 # AI Query Optimizer for Laravel
@@ -27,27 +30,11 @@ A powerful Laravel development tool that leverages the intelligence of AI to ana
 
 ## Installation
 
-Since this package is not on Packagist, you need to add the repository to your project's `composer.json` file.
+You can install the package via Composer:
 
-1. **Add the repository to `composer.json`**:
-   
-   ```json
-   "repositories": [
-       {
-           "type": "vcs",
-           "url": "https://github.com/sarfraznawaz2005/aiqueryoptimizer.git"
-       }
-   ]
-   ```
-   
-   Add this within the main object of your `composer.json` file.
-
-2. **Require the package**:
-   Now, you can install the package using Composer:
-   
-   ```bash
-   composer require sarfraznawaz2005/aiqueryoptimizer:dev-main --dev
-   ```
+```bash
+composer require sarfraznawaz2005/aiqueryoptimizer --dev
+```
 
 Next, publish the configuration and assets using the `vendor:publish` command. This will create the `config/ai-query-optimizer.php` file and publish the necessary CSS/JS assets to your `public` directory.
 
@@ -136,11 +123,19 @@ The package hooks into Laravel's query execution event to collect all `SELECT` q
 
 This is a development tool and should **not** be used in a production environment. Always ensure your API keys are stored securely in your `.env` file and are not committed to version control.
 
+## Credits
+
+- [Sarfraz Ahmed][link-author]
+- [All Contributors][link-contributors]
+
 ## License
 
-The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
+Please see the [license file](license) for more information.
 
-## Author
+[ico-version]: https://img.shields.io/packagist/v/sarfraznawaz2005/aiqueryoptimizer.svg?style=flat-square
+[ico-downloads]: https://img.shields.io/packagist/dt/sarfraznawaz2005/aiqueryoptimizer.svg?style=flat-square
 
-- **Sarfraz Ahmed**
-- **Email**: sarfraznawaz2005@gmail.com
+[link-packagist]: https://packagist.org/packages/sarfraznawaz2005/aiqueryoptimizer
+[link-downloads]: https://packagist.org/packages/sarfraznawaz2005/aiqueryoptimizer
+[link-author]: https://github.com/sarfraznawaz2005
+[link-contributors]: https://github.com/sarfraznawaz2005/aiqueryoptimizer/graphs/contributors

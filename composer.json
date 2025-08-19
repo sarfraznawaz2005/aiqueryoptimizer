@@ -2,12 +2,13 @@
     "name": "sarfraznawaz2005/aiqueryoptimizer",
     "description": "A Laravel package to analyze and optimize SQL queries using AI.",
     "type": "laravel-package",
-    "license": "MIT",
+    "license": "proprietary",
     "keywords": ["laravel", "sql", "ai", "query", "optimizer", "performance", "database", "gemini", "openai"],
     "authors": [
         {
             "name": "Sarfraz Ahmed",
-            "email": "sarfraznawaz2005@gmail.com"
+            "email": "sarfraznawaz2005@gmail.com",
+            "homepage": "https://github.com/sarfraznawaz2005/aiqueryoptimizer/graphs/contributors"
         }
     ],
     "require": {
@@ -30,6 +31,6 @@
             ]
         }
     },
-    "minimum-stability": "dev",
+    "minimum-stability": "stable",
     "prefer-stable": true
 }
