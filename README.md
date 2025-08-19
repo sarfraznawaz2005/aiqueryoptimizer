@@ -66,33 +66,14 @@ To prevent the package from running in a production environment, it is restricte
 
 The package supports both Gemini and OpenAI. You need to configure your chosen provider with the appropriate API key and model.
 
-```php
-'ai' => [
-	'provider' => env('AI_PROVIDER', 'gemini'), // 'gemini', 'openai'
-
-	'providers' => [
-		'gemini' => [
-			'key' => env('GEMINI_API_KEY'),
-			'model' => env('GEMINI_MODEL'),
-		],
-		'openai' => [
-			'key' => env('OPENAI_API_KEY'),
-			'model' => env('OPENAI_MODEL'),
-			'organization' => env('OPENAI_ORGANIZATION'),
-		],
-	],
-],
-```
-
-Add your API key to your `.env` file:
+Update your `.env` file, example with Gemini:
 
 ```env
-# For Gemini
+AI_QUERY_OPTIMIZER_ENABLED=true
+AI_PROVIDER=gemini
 GEMINI_API_KEY=your_gemini_api_key
+GEMINI_MODEL="gemini-2.5-flash"
 
-# For OpenAI
-OPENAI_API_KEY=your_openai_api_key
-OPENAI_ORGANIZATION=your_openai_organization_id
 ```
 
 ### 4. Caching
