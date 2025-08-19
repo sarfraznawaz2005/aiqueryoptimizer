@@ -2,7 +2,7 @@
     "name": "sarfraznawaz2005/aiqueryoptimizer",
     "description": "A Laravel package to analyze and optimize SQL queries using AI.",
     "type": "laravel-package",
-    "license": "proprietary",
+    "license": "MIT",
     "keywords": ["laravel", "sql", "ai", "query", "optimizer", "performance", "database", "gemini", "openai"],
     "authors": [
         {
