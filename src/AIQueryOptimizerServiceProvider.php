@@ -46,10 +46,19 @@ class AIQueryOptimizerServiceProvider extends ServiceProvider
                     $response->headers->set('X-AI-Query-Optimizer-Queries', json_encode($queries, JSON_THROW_ON_ERROR));
                 } else {
                     $content = $response->getContent();
-                    if (str_contains($content, '</body>')) {
-                        $optimizer = view('ai-query-optimizer::optimizer')->render();
-                        $response->setContent(str_replace('</body>', $optimizer . '</body>', $content));
+                    $optimizer = view('ai-query-optimizer::optimizer')->render(); // Render once
+
+                    $position = strripos($content, '</head>');
+
+                    if (false !== $position) {
+                        $content = substr($content, 0, $position) . $optimizer . substr($content, $position);
+                    } else {
+                        // Fallback if </head> not found (unlikely for HTML)
+                        $content .= $optimizer;
                     }
+
+                    $response->setContent($content);
+                    $response->headers->remove('Content-Length'); // Update content length
                 }
             });
         }

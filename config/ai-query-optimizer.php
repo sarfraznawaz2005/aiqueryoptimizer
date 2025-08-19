@@ -33,7 +33,9 @@ return [
     | Example: ['admin/*', 'telescope*']
     |
     */
-    'excluded_url_patterns' => [],
+    'excluded_url_patterns' => [
+		'*ai-query-optimizer*',
+    ],
 
     /*
     |--------------------------------------------------------------------------

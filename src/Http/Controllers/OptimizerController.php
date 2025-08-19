@@ -127,5 +127,39 @@ class OptimizerController extends Controller
         }
     }
 
+    public function status(Request $request)
+    {
+        try {
+            $queries = $request->get('queries', []);
+            $cachedCount = 0;
+            $uniqueQueries = [];
+
+            foreach ($queries as $queryData) {
+                $sql = $queryData['query'];
+                // Avoid processing the same SQL query multiple times from the input
+                if (isset($uniqueQueries[$sql])) {
+                    continue;
+                }
+                $uniqueQueries[$sql] = true;
+
+                $cacheKey = 'ai-query-optimizer-' . md5($sql);
+                if (Cache::has($cacheKey)) {
+                    $cachedCount++;
+                }
+            }
+
+            $totalUniqueQueries = count($uniqueQueries);
+            $newCount = $totalUniqueQueries - $cachedCount;
+
+            return response()->json([
+                'cachedCount' => $cachedCount,
+                'newCount' => $newCount,
+            ]);
+
+        } catch (Throwable $e) {
+            return response()->json(['error' => 'Failed to get status'], 500);
+        }
+    }
+
 }
 

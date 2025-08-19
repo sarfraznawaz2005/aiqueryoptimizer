@@ -1,15 +1,88 @@
+let queries = []; // Moved to global scope for accessibility
+
+function addQueries(newQueries) {
+    const maxAllowed = window.maxQueriesToSend;
+
+    // Create a set of existing query strings for quick lookup
+    const existingQueryStrings = new Set(queries.map(q => q.query));
+
+    for (const newQuery of newQueries) {
+        if (queries.length >= maxAllowed) {
+            break; // Stop if we've hit capacity
+        }
+        if (!existingQueryStrings.has(newQuery.query)) {
+            queries.push(newQuery);
+            existingQueryStrings.add(newQuery.query); // Add to set as well
+        }
+    }
+    updateQueryCount();
+}
+
+function updateQueryCount() { // Moved to global scope
+    const countEl = document.getElementById('ai-query-optimizer-count'); // Get element here
+    if (countEl) { // Ensure element exists before updating
+        countEl.textContent = Math.min(queries.length, window.maxQueriesToSend);
+    }
+}
+
+
+// --- Intercept fetch & XMLHttpRequest to capture AJAX queries ---
+(function () {
+    // --- Fetch Interceptor ---
+    const originalFetch = window.fetch;
+    if (originalFetch) {
+        window.fetch = function (...args) {
+            return originalFetch.apply(this, args).then(response => {
+                if (response && response.headers && response.headers.has('X-AI-Query-Optimizer-Queries')) {
+                    try {
+                        const ajaxQueries = JSON.parse(response.headers.get('X-AI-Query-Optimizer-Queries'));
+                        addQueries(ajaxQueries);
+                    } catch (e) {
+                        // Fail silently if parsing fails
+                    }
+                }
+                return response;
+            });
+        };
+    }
+
+    // --- XMLHttpRequest Interceptor ---
+    const OriginalXMLHttpRequest = window.XMLHttpRequest;
+
+    window.XMLHttpRequest = function () {
+        const xhr = new OriginalXMLHttpRequest();
+
+        // Apply our event listener to this new instance
+        xhr.addEventListener('load', function () {
+            if (xhr.readyState === 4) {
+                const header = xhr.getResponseHeader('X-AI-Query-Optimizer-Queries');
+                if (header) {
+                    try {
+                        const ajaxQueries = JSON.parse(header);
+                        addQueries(ajaxQueries);
+                    } catch (e) { /* silent fail */
+                    }
+                }
+            }
+        });
+        return xhr;
+    };
+})(); // End of self-invoking function for XHR patch
+
+
+// --- Main DOMContentLoaded logic ---
 document.addEventListener('DOMContentLoaded', function () {
     const btn = document.getElementById('ai-query-optimizer-btn');
     const modal = document.getElementById('ai-query-optimizer-modal');
     const closeBtn = document.getElementById('ai-query-optimizer-close');
-    const countEl = document.getElementById('ai-query-optimizer-count');
     const resultsEl = document.getElementById('ai-query-optimizer-results');
     const toggleOptimizedCheckbox = document.getElementById('toggle-optimized');
 
-    let queries = [];
+    // queries array is now global
+    // updateQueryCount is now global
 
     function initialize() {
-        queries = window.initialQueries || []; // Populate from initial queries
+        queries = window.initialQueries || [];
         updateQueryCount();
 
         toggleOptimizedCheckbox.addEventListener('change', function () {
@@ -23,85 +96,71 @@ document.addEventListener('DOMContentLoaded', function () {
 
     btn.addEventListener('click', function () {
         modal.style.display = 'block';
-        resultsEl.innerHTML = '<div style="display: flex; align-items: center;"><div class="loader"></div><p>Analyzing Queries...</p></div>';
+        btn.style.display = 'none'; // Hide the button when modal opens
+        resultsEl.innerHTML = '<div style="display: flex; align-items: center;"><div class="loader"></div><p>Preparing analysis...</p></div>';
 
-        fetch('/ai-query-optimizer/analyze', {
+        fetch('/ai-query-optimizer/status', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
             },
-            body: JSON.stringify({ queries: queries })
+            body: JSON.stringify({queries: queries})
         })
             .then(response => {
                 if (!response.ok) {
-                    return response.json().then(errorData => {
-                        throw new Error(errorData.error.message || 'An unknown error occurred.');
-                    });
+                    throw new Error('Could not retrieve query status.');
                 }
                 return response.json();
             })
-            .then(data => {
-                resultsEl.innerHTML = data.results;
+            .then(statusData => {
+                let loadingText = `<div style="display: flex; align-items: center;"><div class="loader"></div><p>Analyzing Queries...<br><small style="font-weight: normal;">`;
+                if (statusData.cachedCount > 0) {
+                    loadingText += `Found ${statusData.cachedCount} cached results. `;
+                }
+                if (statusData.newCount > 0) {
+                    loadingText += `Sending ${statusData.newCount} new queries to AI.`;
+                }
+                loadingText += `</small></p></div>`;
+                resultsEl.innerHTML = loadingText;
+
+                return fetch('/ai-query-optimizer/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: JSON.stringify({queries: queries})
+                });
             })
-            .catch(error => {
-                resultsEl.innerHTML = `<p style="color: red; font-weight: bold;">Error: ${error.message}</p>`;
-                console.error('Error:', error);
-            });
-    });
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(errorData => {
+                        throw new Error(errorData.error.message || 'An unknown error occurred during analysis.');
+                    });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    resultsEl.innerHTML = data.results;
+                })
+                .catch(error => {
+                    resultsEl.innerHTML = `<p style="color: red; font-weight: bold;">Error: ${error.message}</p>`;
+                    console.error('Error:', error);
+                });
+        });
 
-    closeBtn.addEventListener('click', function () {
-        modal.style.display = 'none';
-    });
-
-    window.addEventListener('click', function (event) {
-        if (event.target === modal) {
+        closeBtn.addEventListener('click', function () {
             modal.style.display = 'none';
-        }
+            btn.style.display = 'block'; // Show the button when modal closes
+        });
+
+        window.addEventListener('click', function (event) {
+            if (event.target === modal) {
+                modal.style.display = 'none';
+                btn.style.display = 'block'; // Show the button when modal closes
+            }
+        });
+
+        initialize();
     });
-
-    function updateQueryCount() {
-        countEl.textContent = Math.min(queries.length, window.maxQueriesToSend);
-    }
-
-    function addQueries(newQueries) {
-        const currentCount = queries.length;
-        const maxAllowed = window.maxQueriesToSend;
-        const remainingCapacity = maxAllowed - currentCount;
-
-        if (remainingCapacity <= 0) {
-            return; // Already at or over capacity
-        }
-
-        // Only add up to the remaining capacity
-        const queriesToAdd = newQueries.slice(0, remainingCapacity);
-        queries.push(...queriesToAdd);
-        updateQueryCount();
-    }
-
-    // Intercept fetch
-    const originalFetch = window.fetch;
-    window.fetch = function (...args) {
-        return originalFetch.apply(this, args).then(response => {
-            if (response.headers.has('X-AI-Query-Optimizer-Queries')) {
-                const ajaxQueries = JSON.parse(response.headers.get('X-AI-Query-Optimizer-Queries'));
-                addQueries(ajaxQueries);
-            }
-            return response;
-        });
-    };
-
-    // Intercept XMLHttpRequest
-    const originalXhrOpen = XMLHttpRequest.prototype.open;
-    XMLHttpRequest.prototype.open = function (...args) {
-        this.addEventListener('load', function () {
-            if (this.getResponseHeader('X-AI-Query-Optimizer-Queries')) {
-                const ajaxQueries = JSON.parse(this.getResponseHeader('X-AI-Query-Optimizer-Queries'));
-                addQueries(ajaxQueries);
-            }
-        });
-        originalXhrOpen.apply(this, args);
-    };
-
-    initialize();
-});

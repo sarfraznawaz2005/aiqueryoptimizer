@@ -50,7 +50,9 @@ class QueryCollector
 
     protected function isSelectQuery(string $sql): bool
     {
-        return strtolower(strtok($sql, ' ')) === 'select';
+        // Trim whitespace and parentheses from the beginning of the query.
+        $trimmedSql = ltrim($sql, " \t\n\r\0\x0B(");
+        return str_starts_with(strtolower($trimmedSql), 'select');
     }
 
     protected function replaceBindings($event): string
@@ -80,6 +82,5 @@ class QueryCollector
         return $event->connection->prepareBindings($event->bindings);
     }
 }
-
 
 
