@@ -9,7 +9,7 @@ return [
     | This option allows you to easily enable or disable the entire package.
     |
     */
-    'enabled' => env('AI_QUERY_OPTIMIZER_ENABLED', true),
+    'enabled' => env('AI_QUERY_OPTIMIZER_ENABLED', false),
 
     /*
     |--------------------------------------------------------------------------
