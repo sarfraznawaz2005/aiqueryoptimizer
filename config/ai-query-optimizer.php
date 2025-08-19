@@ -47,7 +47,7 @@ return [
     |
     */
     'ai' => [
-        'provider' => env('AI_PROVIDER', 'gemini'), // 'gemini', 'openai', etc.
+        'provider' => env('AI_PROVIDER', 'gemini'), // 'gemini', 'openai'
 
         'providers' => [
             'gemini' => [

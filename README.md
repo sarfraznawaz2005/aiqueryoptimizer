@@ -68,19 +68,19 @@ The package supports both Gemini and OpenAI. You need to configure your chosen p
 
 ```php
 'ai' => [
-    'provider' => 'gemini', // or 'openai'
+	'provider' => env('AI_PROVIDER', 'gemini'), // 'gemini', 'openai'
 
-    'providers' => [
-        'gemini' => [
-            'key' => env('GEMINI_API_KEY'),
-            'model' => 'gemini-1.5-flash',
-        ],
-        'openai' => [
-            'key' => env('OPENAI_API_KEY'),
-            'model' => 'gpt-4-turbo',
-            'organization' => env('OPENAI_ORGANIZATION'),
-        ],
-    ],
+	'providers' => [
+		'gemini' => [
+			'key' => env('GEMINI_API_KEY'),
+			'model' => env('GEMINI_MODEL'),
+		],
+		'openai' => [
+			'key' => env('OPENAI_API_KEY'),
+			'model' => env('OPENAI_MODEL'),
+			'organization' => env('OPENAI_ORGANIZATION'),
+		],
+	],
 ],
 ```
 
