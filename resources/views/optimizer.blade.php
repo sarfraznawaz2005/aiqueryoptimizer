@@ -1,4 +1,4 @@
-<link rel="stylesheet" href="{{ asset('vendor/ai-query-optimizer/css/optimizer.css?v=' . time()) }}">
+<link rel="stylesheet" href="{{ asset('vendor/ai-query-optimizer/css/optimizer.css') }}">
 
 <div id="ai-query-optimizer-btn"
      style="position: fixed; bottom: 20px; right: 20px; z-index: 999999999; {{ config('ai-query-optimizer.ui.button_position') }}">
@@ -32,4 +32,4 @@
     window.initialQueries = @json(app(AIQueryOptimizer\Collectors\QueryCollector::class)->getQueries());
     window.maxQueriesToSend = {{ config('ai-query-optimizer.query_processing.max_queries_to_send') }};
 </script>
-<script src="{{ asset('vendor/ai-query-optimizer/js/optimizer.js?v=' . time()) }}"></script>
+<script src="{{ asset('vendor/ai-query-optimizer/js/optimizer.js') }}"></script>
