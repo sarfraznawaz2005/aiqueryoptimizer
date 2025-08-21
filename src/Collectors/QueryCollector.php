@@ -20,6 +20,21 @@ class QueryCollector
 
         $sql = $this->replaceBindings($event);
 
+        // Allow developers to ignore specific queries
+        if (str_contains($sql, '/* AI_OPTIMIZER_IGNORE */')) {
+            return;
+        }
+
+        // Check against configured ignored patterns
+        $ignoredPatterns = config('ai-query-optimizer.ignored_query_patterns', []);
+        foreach ($ignoredPatterns as $pattern) {
+            $patternNormalized = str_replace('`', '', $pattern);
+
+            if (str_contains($sql, $pattern) || str_contains($sql, $patternNormalized)) {
+                return; // Ignore this query
+            }
+        }
+
         // Check for uniqueness
         if (isset($this->queries[$sql])) {
             return;
@@ -51,7 +66,7 @@ class QueryCollector
     protected function isSelectQuery(string $sql): bool
     {
         // Trim whitespace and parentheses from the beginning of the query.
-        $trimmedSql = ltrim($sql, " \t\n\r\0\x0B(");
+        $trimmedSql = ltrim($sql, " 	\n\r\0\x0B(");
         return str_starts_with(strtolower($trimmedSql), 'select');
     }
 
@@ -62,8 +77,8 @@ class QueryCollector
 
         foreach ($this->formatBindings($event) as $key => $binding) {
             $regex = is_numeric($key)
-                ? "/\?(?=(?:[^'\\\']*'[^'\\\']*')*[^'\\\']*$)/"
-                : "/:$key(?=(?:[^'\\\']*'[^'\\\']*')*[^'\\\']*$)/";
+                ? "/\?(?=(?:[^'\\']*'[^'\\']*')*[^'\\']*$)/"
+                : "/:$key(?=(?:[^'\\']*'[^'\\']*')*[^'\\']*$)/";
 
             if ($binding === null) {
                 $binding = 'null';

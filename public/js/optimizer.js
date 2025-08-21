@@ -1,166 +1,265 @@
-let queries = []; // Moved to global scope for accessibility
+// Ensure the global namespace exists, preserving any data set by inline scripts.
+window.AIQueryOptimizer = window.AIQueryOptimizer || {};
 
-function addQueries(newQueries) {
-    const maxAllowed = window.maxQueriesToSend;
+// Pass the namespace into a self-executing function to create a private scope.
+(function (AQO) {
 
-    // Create a set of existing query strings for quick lookup
-    const existingQueryStrings = new Set(queries.map(q => q.query));
+    // --- Private State ---
+    let queries = [];
 
-    for (const newQuery of newQueries) {
+    // --- Private Methods ---
+    function updateQueryCount() {
+        const countEl = document.getElementById('ai-query-optimizer-count');
+        const buttonEl = document.getElementById('ai-query-optimizer-btn')?.querySelector('button');
+
+        if (countEl && buttonEl) {
+            const queryCount = queries.length;
+            const maxAllowed = AQO.maxQueriesToSend || 50;
+            countEl.textContent = Math.min(queryCount, maxAllowed);
+            buttonEl.disabled = (queryCount === 0);
+        }
+    }
+
+    // --- Public Methods ---
+    AQO.addQueries = function (newQueries) {
+        if (!Array.isArray(newQueries)) return;
+
+        const maxAllowed = AQO.maxQueriesToSend || 50;
         if (queries.length >= maxAllowed) {
-            break; // Stop if we've hit capacity
+            return; // Stop if we've hit capacity
         }
-        if (!existingQueryStrings.has(newQuery.query)) {
-            queries.push(newQuery);
-            existingQueryStrings.add(newQuery.query); // Add to set as well
-        }
-    }
-    updateQueryCount();
-}
 
-function updateQueryCount() { // Moved to global scope
-    const countEl = document.getElementById('ai-query-optimizer-count'); // Get element here
-    if (countEl) { // Ensure element exists before updating
-        countEl.textContent = Math.min(queries.length, window.maxQueriesToSend);
-    }
-}
+        const existingQuerySet = new Set(queries.map(q => q.query));
+        const uniqueNewQueries = newQueries.filter(nq => nq && nq.query && !existingQuerySet.has(nq.query));
 
+        const remainingCapacity = maxAllowed - queries.length;
+        const queriesToAdd = uniqueNewQueries.slice(0, remainingCapacity);
 
-// --- Intercept fetch & XMLHttpRequest to capture AJAX queries ---
-(function () {
-    // --- Fetch Interceptor ---
-    const originalFetch = window.fetch;
-    if (originalFetch) {
+        queries.push(...queriesToAdd);
+        updateQueryCount();
+    };
+
+    // --- AJAX Interceptors (Execute Immediately) ---
+    (function () {
+        const originalFetch = window.fetch;
         window.fetch = function (...args) {
+            if (args[0] && typeof args[0] === 'string' && args[0].includes('/ai-query-optimizer/')) {
+                return originalFetch.apply(this, args);
+            }
+
             return originalFetch.apply(this, args).then(response => {
-                if (response && response.headers && response.headers.has('X-AI-Query-Optimizer-Queries')) {
+                const clonedResponse = response.clone();
+                if (clonedResponse.headers.has('X-AI-Query-Optimizer-Queries')) {
                     try {
-                        const ajaxQueries = JSON.parse(response.headers.get('X-AI-Query-Optimizer-Queries'));
-                        addQueries(ajaxQueries);
+                        const ajaxQueries = JSON.parse(clonedResponse.headers.get('X-AI-Query-Optimizer-Queries'));
+                        AQO.addQueries(ajaxQueries); // Use public method
                     } catch (e) {
-                        // Fail silently if parsing fails
+                        console.warn('AI Query Optimizer: Could not parse queries from fetch header.', e);
                     }
                 }
                 return response;
             });
         };
-    }
 
-    // --- XMLHttpRequest Interceptor ---
-    const OriginalXMLHttpRequest = window.XMLHttpRequest;
-
-    window.XMLHttpRequest = function () {
-        const xhr = new OriginalXMLHttpRequest();
-
-        // Apply our event listener to this new instance
-        xhr.addEventListener('load', function () {
-            if (xhr.readyState === 4) {
-                const header = xhr.getResponseHeader('X-AI-Query-Optimizer-Queries');
-                if (header) {
+        const originalXhrOpen = XMLHttpRequest.prototype.open;
+        XMLHttpRequest.prototype.open = function (...args) {
+            this.addEventListener('load', function () {
+                if (this.readyState === 4 && this.getResponseHeader('X-AI-Query-Optimizer-Queries')) {
                     try {
-                        const ajaxQueries = JSON.parse(header);
-                        addQueries(ajaxQueries);
-                    } catch (e) { /* silent fail */
+                        const ajaxQueries = JSON.parse(this.getResponseHeader('X-AI-Query-Optimizer-Queries'));
+                        AQO.addQueries(ajaxQueries); // Use public method
+                    } catch (e) {
+                        console.warn('AI Query Optimizer: Could not parse queries from XHR header.', e);
                     }
                 }
+            });
+            originalXhrOpen.apply(this, args);
+        };
+    })();
+
+    // --- UI and Modal Logic (Execute on DOM Load) ---
+    document.addEventListener('DOMContentLoaded', function () {
+        // Element Selectors
+        const btn = document.getElementById('ai-query-optimizer-btn');
+        const modal = document.getElementById('ai-query-optimizer-modal');
+        const closeBtn = document.getElementById('ai-query-optimizer-close');
+        const resultsEl = document.getElementById('ai-query-optimizer-results');
+        const toggleOptimizedCheckbox = document.getElementById('toggle-optimized');
+        const manualQueryInput = document.getElementById('aqo-manual-query-input');
+        const manualQueryBtn = document.getElementById('aqo-manual-query-btn');
+        const manualQueryResultEl = document.getElementById('aqo-manual-query-result');
+        const manualModal = document.getElementById('ai-query-optimizer-manual-modal');
+        const openManualModalBtn = document.getElementById('aqo-open-manual-modal-btn');
+        const closeManualModalBtn = document.getElementById('ai-query-optimizer-manual-close');
+
+        // --- UI State Management ---
+        function openMainModal() {
+            manualModal.style.display = 'none';
+            modal.style.display = 'block';
+            btn.style.display = 'none';
+        }
+
+        function openManualModal() {
+            modal.style.display = 'none';
+            manualModal.style.display = 'block';
+            btn.style.display = 'none';
+        }
+
+        function closeAllModals() {
+            modal.style.display = 'none';
+            manualModal.style.display = 'none';
+            btn.style.display = 'block';
+        }
+
+        // --- Event Handlers ---
+        function handleCheckAgain(button) {
+            const rawQuery = button.dataset.query;
+            const resultContainer = button.closest('.aqo-query-result-container');
+            const analysisContent = resultContainer.querySelector('.analysis-content');
+            const queryData = queries.find(q => q.query === rawQuery);
+
+            if (!queryData) {
+                analysisContent.innerHTML = `<p style="color: red; font-weight: bold;">Error: Could not find original query data.</p>`;
+                return;
             }
-        });
-        return xhr;
-    };
-})(); // End of self-invoking function for XHR patch
 
+            analysisContent.innerHTML = '<div class="aqo-statusText"><div class="aqo-loader"></div><p>Re-analyzing...</p></div>';
+            button.disabled = true;
 
-// --- Main DOMContentLoaded logic ---
-document.addEventListener('DOMContentLoaded', function () {
-    const btn = document.getElementById('ai-query-optimizer-btn');
-    const modal = document.getElementById('ai-query-optimizer-modal');
-    const closeBtn = document.getElementById('ai-query-optimizer-close');
-    const resultsEl = document.getElementById('ai-query-optimizer-results');
-    const toggleOptimizedCheckbox = document.getElementById('toggle-optimized');
-
-    // queries array is now global
-    // updateQueryCount is now global
-
-    function initialize() {
-        queries = window.initialQueries || [];
-        updateQueryCount();
-
-        toggleOptimizedCheckbox.addEventListener('change', function () {
-            if (this.checked) {
-                modal.classList.remove('hide-optimized');
-            } else {
-                modal.classList.add('hide-optimized');
-            }
-        });
-    }
-
-    btn.addEventListener('click', function () {
-        modal.style.display = 'block';
-        btn.style.display = 'none'; // Hide the button when modal opens
-        resultsEl.innerHTML = '<div style="display: flex; align-items: center;"><div class="loader"></div><p>Preparing analysis...</p></div>';
-
-        fetch('/ai-query-optimizer/status', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-            },
-            body: JSON.stringify({queries: queries})
-        })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Could not retrieve query status.');
-                }
-                return response.json();
+            fetch('/ai-query-optimizer/analyze', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                },
+                body: JSON.stringify({queries: queryData, bypass_cache: true})
             })
-            .then(statusData => {
-                let loadingText = `<div style="display: flex; align-items: center;"><div class="loader"></div><p>Analyzing Queries...<br><small style="font-weight: normal;">`;
-                if (statusData.cachedCount > 0) {
-                    loadingText += `Found ${statusData.cachedCount} cached results. `;
-                }
-                if (statusData.newCount > 0) {
-                    loadingText += `Sending ${statusData.newCount} new queries to AI.`;
-                }
-                loadingText += `</small></p></div>`;
-                resultsEl.innerHTML = loadingText;
-
-                return fetch('/ai-query-optimizer/analyze', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                    },
-                    body: JSON.stringify({queries: queries})
-                });
-            })
-            .then(response => {
-                if (!response.ok) {
-                    return response.json().then(errorData => {
-                        throw new Error(errorData.error.message || 'An unknown error occurred during analysis.');
-                    });
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(err => { throw new Error(err.error.message || 'Unknown error'); });
                     }
                     return response.json();
                 })
                 .then(data => {
-                    resultsEl.innerHTML = data.results;
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = data.html;
+                    resultContainer.parentNode.replaceChild(tempDiv.firstChild, resultContainer);
                 })
+                .catch(error => {
+                    analysisContent.innerHTML = `<p style="color: red; font-weight: bold;">Error: ${error.message}</p>`;
+                    button.disabled = false;
+                });
+        }
+
+        function handleManualQueryAnalysis() {
+            const query = manualQueryInput.value.trim();
+            if (!query) {
+                manualQueryResultEl.innerHTML = `<p style="color: orange; font-weight: bold;">Please enter a query to analyze.</p>`;
+                return;
+            }
+
+            manualQueryResultEl.innerHTML = `<div class="aqo-statusText"><div class="aqo-loader"></div><p>Analyzing manual query...</p></div>`;
+            manualQueryBtn.disabled = true;
+
+            fetch('/ai-query-optimizer/analyze-manual', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                },
+                body: JSON.stringify({ query: query })
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(err => { throw new Error(err.error.message || 'Unknown error during manual analysis.'); });
+                    }
+                    return response.json();
+                })
+                .then(data => { manualQueryResultEl.innerHTML = data.html; })
+                .catch(error => { manualQueryResultEl.innerHTML = `<p style="color: red; font-weight: bold;">Error: ${error.message}</p>`; })
+                .finally(() => { manualQueryBtn.disabled = false; });
+        }
+
+        // --- Initial Load ---
+        AQO.addQueries(AQO.initialQueries || []);
+
+        // --- Attach Event Listeners ---
+        if (btn) btn.addEventListener('click', function () {
+            openMainModal();
+            resultsEl.innerHTML = '<div class="aqo-statusText"><div class="aqo-loader"></div><p>Preparing analysis...</p></div>';
+
+            fetch('/ai-query-optimizer/status', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                },
+                body: JSON.stringify({queries: queries})
+            })
+                .then(response => {
+                    if (!response.ok) { throw new Error('Could not retrieve query status.'); }
+                    return response.json();
+                })
+                .then(statusData => {
+                    let loadingText = `<div class="aqo-statusText"><div class="aqo-loader"></div><p>Analyzing Queries...<br>`;
+                    if (statusData.cachedCount > 0) { loadingText += `Found ${statusData.cachedCount} cached results. `; }
+                    if (statusData.newCount > 0) { loadingText += `Sending ${statusData.newCount} new queries to AI.`; }
+                    loadingText += `</p></div>`;
+                    resultsEl.innerHTML = loadingText;
+
+                    return fetch('/ai-query-optimizer/analyze', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                        },
+                        body: JSON.stringify({queries: queries})
+                    });
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(errorData => { throw new Error(errorData.error.message || 'An unknown error occurred during analysis.'); });
+                    }
+                    return response.json();
+                })
+                .then(data => { resultsEl.innerHTML = data.results; })
                 .catch(error => {
                     resultsEl.innerHTML = `<p style="color: red; font-weight: bold;">Error: ${error.message}</p>`;
                     console.error('Error:', error);
                 });
         });
 
-        closeBtn.addEventListener('click', function () {
-            modal.style.display = 'none';
-            btn.style.display = 'block'; // Show the button when modal closes
-        });
+        if (closeBtn) closeBtn.addEventListener('click', closeAllModals);
+        if (openManualModalBtn) openManualModalBtn.addEventListener('click', openManualModal);
+        if (closeManualModalBtn) closeManualModalBtn.addEventListener('click', closeAllModals);
+        if (manualQueryBtn) manualQueryBtn.addEventListener('click', handleManualQueryAnalysis);
 
-        window.addEventListener('click', function (event) {
-            if (event.target === modal) {
-                modal.style.display = 'none';
-                btn.style.display = 'block'; // Show the button when modal closes
+        if (toggleOptimizedCheckbox) {
+            toggleOptimizedCheckbox.addEventListener('change', function () {
+                modal.classList.toggle('aqo-hide-optimized', !this.checked);
+            });
+        }
+
+        resultsEl.addEventListener('click', function (event) {
+            const checkAgainButton = event.target.closest('.aqo-check-again-btn');
+            if (checkAgainButton) {
+                event.stopPropagation();
+                handleCheckAgain(checkAgainButton);
+                return;
+            }
+
+            const header = event.target.closest('.aqo-collapsible-header');
+            if (header) {
+                const container = header.closest('.aqo-collapsible');
+                if (container) container.classList.toggle('aqo-collapsed');
             }
         });
 
-        initialize();
+        window.addEventListener('click', function (event) {
+            if (event.target === modal || event.target === manualModal) {
+                closeAllModals();
+            }
+        });
     });
+
+})(window.AIQueryOptimizer);

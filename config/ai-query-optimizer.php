@@ -9,7 +9,7 @@ return [
     | This option allows you to easily enable or disable the entire package.
     |
     */
-    'enabled' => env('AI_QUERY_OPTIMIZER_ENABLED', false),
+    'enabled' => env('AI_QUERY_OPTIMIZER_ENABLED', true),
 
     /*
     |--------------------------------------------------------------------------
@@ -34,8 +34,24 @@ return [
     |
     */
     'excluded_url_patterns' => [
-		'*ai-query-optimizer*',
+        '*ai-query-optimizer*'
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Ignored Query Patterns
+    |--------------------------------------------------------------------------
+    |
+    | Queries containing any of these substrings will be ignored by the AI
+    | Query Optimizer. This is useful for filtering out known, non-optimizable
+    | or noisy queries.
+    |
+    | Example: [
+    |     'select * from `sessions` where `id` =',
+    | ]
+    |
+    */
+    'ignored_query_patterns' => [],
 
     /*
     |--------------------------------------------------------------------------
@@ -47,16 +63,16 @@ return [
     |
     */
     'ai' => [
-        'provider' => env('AI_PROVIDER', 'gemini'), // 'gemini', 'openai'
+        'provider' => 'gemini', // 'gemini', 'openai', etc.
 
         'providers' => [
             'gemini' => [
                 'key' => env('GEMINI_API_KEY'),
-                'model' => env('GEMINI_MODEL'),
+                'model' => 'gemini-2.5-flash',
             ],
             'openai' => [
                 'key' => env('OPENAI_API_KEY'),
-                'model' => env('OPENAI_MODEL'),
+                'model' => 'gpt-4-turbo',
                 'organization' => env('OPENAI_ORGANIZATION'),
             ],
         ],
