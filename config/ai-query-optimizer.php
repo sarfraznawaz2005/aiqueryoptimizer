@@ -9,7 +9,7 @@ return [
     | This option allows you to easily enable or disable the entire package.
     |
     */
-    'enabled' => env('AI_QUERY_OPTIMIZER_ENABLED', true),
+    'enabled' => env('AI_QUERY_OPTIMIZER_ENABLED', false),
 
     /*
     |--------------------------------------------------------------------------
@@ -20,7 +20,7 @@ return [
     | safeguard to prevent it from ever running on 'production'.
     |
     */
-    'allowed_environments' => ['local', 'development', 'staging'],
+    'allowed_environments' => ['local'],
 
     /*
     |--------------------------------------------------------------------------
@@ -34,7 +34,7 @@ return [
     |
     */
     'excluded_url_patterns' => [
-        '*ai-query-optimizer*'
+        '*ai-query-optimizer*',
     ],
 
     /*
@@ -63,16 +63,16 @@ return [
     |
     */
     'ai' => [
-        'provider' => 'gemini', // 'gemini', 'openai', etc.
+        'provider' => env('AI_PROVIDER'), // 'gemini', 'openai', etc.
 
         'providers' => [
             'gemini' => [
                 'key' => env('GEMINI_API_KEY'),
-                'model' => 'gemini-2.5-flash',
+                'model' => env('GEMINI_MODEL'),
             ],
             'openai' => [
                 'key' => env('OPENAI_API_KEY'),
-                'model' => 'gpt-4-turbo',
+                'model' => env('OPENAI_MODEL'),
                 'organization' => env('OPENAI_ORGANIZATION'),
             ],
         ],
