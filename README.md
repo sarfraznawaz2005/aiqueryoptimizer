@@ -1,11 +1,10 @@
 [![Latest Version on Packagist][ico-version]][link-packagist]
 [![Total Downloads][ico-downloads]][link-downloads]
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ![Screenshot](screenshot.png)
 
 # AI Query Optimizer for Laravel
-
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A Laravel development tool that leverages the intelligence of AI to analyze and optimize your application's SQL queries. This package provides real-time, actionable feedback directly in your browser, helping you identify performance bottlenecks and improve your database efficiency.
 

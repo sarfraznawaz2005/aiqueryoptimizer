@@ -220,3 +220,11 @@
     background-color: #EA4334;
     color: #fff;
 }
+
+#aqo-manual-query-btn:disabled,
+.aqo-check-again-btn:disabled {
+    background-color: #cccccc !important;
+    color: #666666;
+    cursor: not-allowed !important;
+    opacity: 0.6;
+}

@@ -124,7 +124,7 @@ window.AIQueryOptimizer = window.AIQueryOptimizer || {};
             }
 
             analysisContent.innerHTML = '<div class="aqo-statusText"><div class="aqo-loader"></div><p>Re-analyzing...</p></div>';
-            button.disabled = true;
+            button.disabled = true; // Disable the button here
 
             fetch('/ai-query-optimizer/analyze', {
                 method: 'POST',
@@ -147,7 +147,9 @@ window.AIQueryOptimizer = window.AIQueryOptimizer || {};
                 })
                 .catch(error => {
                     analysisContent.innerHTML = `<p style="color: red; font-weight: bold;">Error: ${error.message}</p>`;
-                    button.disabled = false;
+                })
+                .finally(() => {
+                    button.disabled = false; // Re-enable the button in the finally block
                 });
         }
 
@@ -159,7 +161,7 @@ window.AIQueryOptimizer = window.AIQueryOptimizer || {};
             }
 
             manualQueryResultEl.innerHTML = `<div class="aqo-statusText"><div class="aqo-loader"></div><p>Analyzing manual query...</p></div>`;
-            manualQueryBtn.disabled = true;
+            manualQueryBtn.disabled = true; // Disable the button here
 
             fetch('/ai-query-optimizer/analyze-manual', {
                 method: 'POST',
@@ -177,7 +179,7 @@ window.AIQueryOptimizer = window.AIQueryOptimizer || {};
                 })
                 .then(data => { manualQueryResultEl.innerHTML = data.html; })
                 .catch(error => { manualQueryResultEl.innerHTML = `<p style="color: red; font-weight: bold;">Error: ${error.message}</p>`; })
-                .finally(() => { manualQueryBtn.disabled = false; });
+                .finally(() => { manualQueryBtn.disabled = false; }); // Re-enable the button in the finally block
         }
 
         // --- Initial Load ---
