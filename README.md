@@ -8,8 +8,6 @@
 
 A Laravel development tool that leverages the intelligence of AI to analyze and optimize your application's SQL queries. This package provides real-time, actionable feedback directly in your browser, helping you identify performance bottlenecks and improve your database efficiency.
 
-**NOTE** Currently only works with `MySQL.`
-
 ## Features
 
 - **On-Demand Query Analysis**: Get instant feedback on your `SELECT` queries with the click of a button.

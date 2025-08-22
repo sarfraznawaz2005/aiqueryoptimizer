@@ -41,7 +41,13 @@ class QueryCollector
         }
 
         try {
-            $explainQuery = "EXPLAIN $sql";
+            $driver = $event->connection->getDriverName();
+            $explainQuery = match ($driver) {
+                'sqlite' => "EXPLAIN QUERY PLAN $sql",
+                'sqlsrv' => "SET SHOWPLAN_TEXT ON; GO; $sql",
+                default => "EXPLAIN $sql",
+            };
+
             $result = DB::select($explainQuery);
             $explainResults = json_encode($result, JSON_PRETTY_PRINT);
 
