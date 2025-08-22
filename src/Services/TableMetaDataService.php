@@ -41,6 +41,13 @@ class TableMetaDataService
 
     public function boot(): void
     {
+        if (DB::connection()->getDriverName() === 'sqlite') {
+            $this->tablesInfo = [];
+            $this->indexes = [];
+
+            return;
+        }
+
         $this->setTableData();
         $this->setIndexes();
     }

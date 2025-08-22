@@ -24,6 +24,11 @@
             "AIQueryOptimizer\\": "src/"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "AIQueryOptimizer\\Tests\\": "tests/"
+        }
+    },
     "extra": {
         "laravel": {
             "providers": [
@@ -32,5 +37,8 @@
         }
     },
     "minimum-stability": "stable",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "require-dev": {
+        "orchestra/testbench": "^10.6"
+    }
 }
