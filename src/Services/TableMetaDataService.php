@@ -10,15 +10,31 @@ class TableMetaDataService
     public array $tablesInfo = [];
     public array $indexes = [];
 
-    protected array $excludedTables = [
-        'migrations', 'password_resets', 'failed_jobs', 'personal_access_tokens',
-        'telescope_entries', 'telescope_entries_tags', 'telescope_monitoring', 'cache',
-        'cache_locks', 'jobs', 'job_batches', 'meter_entries', 'oauth_access_tokens',
-        'oauth_auth_codes', 'oauth_clients', 'oauth_personal_access_clients',
-        'oauth_refresh_tokens', 'password_reset_tokens', 'plogs', 'pulse_aggregates',
-        'pulse_entries', 'pulse_values', 'sessions', 'sselogs', 'verifybackup', 'welcomes',
+	protected array $excludedTables = [
+        'migrations',
+        'password_resets',
+        'failed_jobs',
+        'personal_access_tokens',
+        'telescope_entries',
+        'telescope_entries_tags',
+        'telescope_monitoring',
+        'cache',
+        'cache_locks',
+        'jobs',
+        'job_batches',
+        'meter_entries',
+        'oauth_access_tokens',
+        'oauth_auth_codes',
+        'oauth_clients',
+        'oauth_personal_access_clients',
+        'oauth_refresh_tokens',
+        'password_reset_tokens',
+        'pulse_aggregates',
+        'pulse_entries',
+        'pulse_values',
+        'sessions',
     ];
-
+    
     public function boot(): void
     {
         $driver = DB::connection()->getDriverName();
