@@ -1,41 +1,47 @@
 name: Update Changelog
 
-on: 
+on:
   release:
-    types: [published]
+    types: [released] # more compatible with the action's docs
 
 jobs:
   update-changelog:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  # needed to push CHANGELOG commit
+
     steps:
-      - name: Checkout code
+      - name: Checkout target branch of the release
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Required to get all history for changelog generation
+          # ensure we commit back to the right branch (e.g., main, 1.x, etc.)
+          ref: ${{ github.event.release.target_commitish }}
+          fetch-depth: 0
+
+      - name: Debug release payload (temporary)
+        run: |
+          echo "Tag:      ${{ github.event.release.tag_name }}"
+          echo "Target:   ${{ github.event.release.target_commitish }}"
+          echo "Is draft: ${{ github.event.release.draft }}"
+          echo "Is prerelease: ${{ github.event.release.prerelease }}"
 
       - name: Extract release date from git tag
         id: release_date
         run: |
-          # Get UNIX timestamp from git-tag
-          TIMESTAMP_OF_RELEASE_COMMIT=$(git log -1 --date=unix --format=%ad '${{ github.event.release.tag_name }}');
-
-          # Convert timestamp to UTC date in Y-m-d format
-          FORMATED_DATE=$(date -u -d @$TIMESTAMP_OF_RELEASE_COMMIT +%Y-%m-%d)
-
-          # Make date available to other steps
-          echo "date=$(echo $FORMATED_DATE)" >> $GITHUB_OUTPUT;
+          echo "date=$(git log -1 --date=short --format=%ad '${{ github.event.release.tag_name }}')" >> $GITHUB_OUTPUT
 
       - name: Update Changelog
         uses: stefanzweifel/changelog-updater-action@v1
         with:
-          path-to-changelog: CHANGELOG.md
           latest-version: ${{ github.event.release.tag_name }}
-          release-date: ${{ steps.release_date.outputs.date }}
           release-notes: ${{ github.event.release.body }}
+          release-date: ${{ steps.release_date.outputs.date }}
+          path-to-changelog: CHANGELOG.md
           parse-github-usernames: true
 
       - name: Commit updated CHANGELOG
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
+          branch: ${{ github.event.release.target_commitish }}
           commit_message: "docs: Update CHANGELOG.md for new release"
           file_pattern: CHANGELOG.md
