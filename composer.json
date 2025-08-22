@@ -39,6 +39,7 @@
     "minimum-stability": "stable",
     "prefer-stable": true,
     "require-dev": {
-        "orchestra/testbench": "^10.6"
+        "orchestra/testbench": "^10.6",
+        "phpstan/phpstan": "^2.1"
     }
 }
