@@ -19,7 +19,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.2' # Or your desired PHP version
+          php-version: '8.3' # Or your desired PHP version
           extensions: mbstring, xml, ctype, iconv, pdo_sqlite, dom, filter, gd, json, mysql, pdo_mysql, pdo_pgsql, pdo_sqlite, session, simplexml, sqlite3, tokenizer, zip
           ini-values: memory_limit=-1
           coverage: none # Or xdebug/pcov if you need coverage
