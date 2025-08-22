@@ -13,6 +13,8 @@ use AIQueryOptimizer\Outputs\QueryAnalysisOutput;
 use ParsedownExtra;
 use Tempest\Highlight\Highlighter;
 use Throwable;
+use InvalidArgumentException;
+use RuntimeException;
 
 class OptimizerController extends Controller
 {
