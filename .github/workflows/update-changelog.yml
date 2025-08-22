@@ -1,4 +1,3 @@
-
 name: Update Changelog
 
 on: 
@@ -14,16 +13,29 @@ jobs:
         with:
           fetch-depth: 0 # Required to get all history for changelog generation
 
+      - name: Extract release date from git tag
+        id: release_date
+        run: |
+          # Get UNIX timestamp from git-tag
+          TIMESTAMP_OF_RELEASE_COMMIT=$(git log -1 --date=unix --format=%ad '${{ github.event.release.tag_name }}');
+
+          # Convert timestamp to UTC date in Y-m-d format
+          FORMATED_DATE=$(date -u -d @$TIMESTAMP_OF_RELEASE_COMMIT +%Y-%m-%d)
+
+          # Make date available to other steps
+          echo "date=$(echo $FORMATED_DATE)" >> $GITHUB_OUTPUT;
+
       - name: Update Changelog
         uses: stefanzweifel/changelog-updater-action@v1
         with:
           path-to-changelog: CHANGELOG.md
           latest-version: ${{ github.event.release.tag_name }}
+          release-date: ${{ steps.release_date.outputs.date }}
+          release-notes: ${{ github.event.release.body }}
+          parse-github-usernames: true
 
-      - name: Commit and Push
-        run: |
-          git config user.name github-actions[bot]
-          git config user.email github-actions[bot]@users.noreply.github.com
-          git add CHANGELOG.md
-          git commit -m "docs: Update CHANGELOG.md for new release" || echo "No changes to commit"
-          git push
+      - name: Commit updated CHANGELOG
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "docs: Update CHANGELOG.md for new release"
+          file_pattern: CHANGELOG.md
