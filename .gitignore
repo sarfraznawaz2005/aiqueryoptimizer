@@ -3,3 +3,8 @@
 /.phpunit.result.cache
 /report.xml
 composer.lock
+# gemini-cli settings
+.gemini/
+
+# GitHub App credentials
+gha-creds-*.json
