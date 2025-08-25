@@ -21,7 +21,7 @@ class QueryCollector
         $sql = $this->replaceBindings($event);
 
         // Allow developers to ignore specific queries
-        if (str_contains($sql, '/* AI_OPTIMIZER_IGNORE */')) {
+        if (str_contains($sql, 'AI_OPTIMIZER_IGNORE')) {
             return;
         }
 
